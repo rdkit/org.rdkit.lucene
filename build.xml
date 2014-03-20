@@ -1,0 +1,160 @@
+<!--
+ * Copyright (C)2014, Novartis Institutes for BioMedical Research Inc.
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ * 
+ * - Redistributions in binary form must reproduce the above
+ *   copyright notice, this list of conditions and the following
+ *   disclaimer in the documentation and/or other materials provided
+ *   with the distribution.
+ * 
+ * - Neither the name of Novartis Institutes for BioMedical Research Inc.
+ *   nor the names of its contributors may be used to endorse or promote
+ *   products derived from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+<project name="Lucene Chemical Index" default="distribution" basedir=".">
+	<description>Build the JAR file for the Lucene Chemical Index.</description>
+
+	<!-- Global properties for this build -->
+	<!-- Note these properties can be overriden at the command line, e.g. Ant -DmyProperty=myNewValue -->
+	<property name="src" location="src:src-demo:src-benchmark" description="The source files"/>
+	<property name="bin" location="build" description="The compiled source files"/>
+	<property name="dist" location="dist" description="The distribution files"/>
+	<property name="lib" location="lib" description="The library files required"/>
+	<property name="resources" location="resources" description="Static resource files such as images"/>	
+	<property name="debug" value="true" description="Sets the debug mode for the java compiler."/>
+	<property name="jarname" value="chemsearchindex.jar" description="Name of the JAR file that contains the classes."/>
+	<property name="distzipname" value="chemsearchindex.zip" description="Name of the overall ZIP file that contains the distribution."/>
+	<property name="mainclass" value="org.rdkit.lucene.demo.LuceneSearchDemo" description="Main class for Manifest File."/>
+	
+	<target name="clean" description="Delete bin and dist directories">
+		<delete dir="${bin}" />
+		<delete dir="${dist}" />
+		<mkdir dir="lib" />
+	</target>
+
+	<target name="compile" depends="clean" description="Compile the source for JVM 1.6">
+		<mkdir dir="${bin}" />
+
+		<!-- Compile for JVM 1.6 compatibility. -->
+		<javac debug="${debug}" fork="true" source="1.6" target="1.6" srcdir="${src}" destdir="${bin}" includeantruntime="false">
+			<classpath>
+				<fileset dir="${lib}">
+					<include name="**/*.jar"/>
+				</fileset>
+			</classpath>
+		</javac>
+
+		<echo message="Compiled in 1.6" />
+
+		<!-- Copy the Images/Resources to the ${bin} directory -->
+		<copy todir="${bin}">
+			<fileset dir="${resources}">
+				<include name="images/*.gif"/>
+				<include name="images/*.png"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="build" depends="compile" description="Generate the JAR File">
+		<!-- Create the distribution directory -->
+		<mkdir dir="${dist}" />
+		<mkdir dir="${dist}/lib" />
+
+		<!-- Copy all library files -->
+		<copy todir="${dist}/lib">
+			<fileset dir="${lib}">
+				<include name="*.jar"/>
+				<include name="native/**/*"/>
+			</fileset>
+		</copy>
+		
+		<!-- Copy the Version + Build number files to the ${bin} directory -->
+		<buildnumber file="${resources}/build.number" />
+		<copy file="${resources}/version.number" todir="${bin}" />
+		<copy file="${resources}/build.number" todir="${bin}" />
+		
+	    <!-- Fancy task that takes the pain out creating properly formatted manifest value -->
+	    <manifestclasspath property="mf.classpath" jarfile="${dist}/${jarname}">
+	        <classpath>
+	            <fileset dir="${dist}/lib" includes="*.jar"/>
+	        </classpath>
+	    </manifestclasspath>
+	
+		<!-- Build the jar file -->
+		<jar jarfile="${dist}/${jarname}" basedir="${bin}">
+	        <manifest>
+	            <attribute name="Main-Class" value="${mainclass}"/>
+	            <attribute name="Class-Path" value="${jarname} ${mf.classpath}"/> 
+	        </manifest>
+	    </jar>
+	</target>
+	
+	<target name="distribution" depends="build,javadoc-public" description="Creates a ZIP File for distribution">
+		<!-- Copy all documentation -->
+		<mkdir dir="${dist}/docs" />
+			
+		<copy todir="${dist}/docs">
+			<fileset dir="docs/public-api">
+				<include name="**/*"/>
+			</fileset>
+		</copy>
+			
+		<!-- Copy SMILES files for benchmarking queries -->
+		<copy todir="${dist}/benchmarking">
+			<fileset dir="benchmarking">
+				<include name="**/*.ini"/>
+				<include name="queries/*.smi"/>
+			</fileset>
+		</copy>
+		
+		<!-- Copy README.txt -->
+		<copy file="README.txt" todir="${dist}" />
+		
+		<!--ZIP everything -->
+		<zip destfile="${dist}/${distzipname}" update="no">
+			<fileset dir="${dist}">
+				<include name="**/*"/>
+			</fileset>
+		</zip>
+	</target>
+
+	<target name="javadoc-public" description="Creates JavaDoc Information for the Public">
+		<property name="ps" value="${path.separator}" />
+
+		<javadoc maxmemory="128M" destdir="docs/public-api" additionalparam="-breakiterator">
+			<packageset dir="src">
+				<include name="org/rdkit/lucene/**" />
+			</packageset>
+			<packageset dir="src-demo">
+				<include name="org/rdkit/lucene/**" />
+			</packageset>
+			<packageset dir="src-benchmark">
+				<include name="org/rdkit/lucene/**" />
+			</packageset>
+			<classpath>
+				<fileset dir="${lib}">
+					<include name="**/*.jar"/>
+				</fileset>
+			</classpath>
+		</javadoc>
+	</target>
+</project>

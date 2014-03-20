@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="src-demo"/>
+	<classpathentry kind="src" path="src-benchmark"/>
+	<classpathentry kind="lib" path="lib/lucene-core-3.6.1.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/org.rdkit.lucene/lib/lucene-core-3.6.1-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/org.RDKit.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/org.rdkit.lucene/lib/org.RDKitDoc.jar!/doc"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/org.RDKitDoc.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="build"/>
+</classpath>
