@@ -398,7 +398,7 @@ public class ChemicalIndex {
 		mol.delete();
 
 		if (strCanonSmiles != null && !strCanonSmiles.isEmpty()) {
-			addMolecule(strPK, strCanonSmiles, listNames, mapProperties);
+			addMolecule(mol, strPK, strCanonSmiles, listNames, mapProperties);
 		}
 		else {
 			LOGGER.log(Level.WARNING, "Canonical SMILES could not be created for\n" + strStructure);
@@ -429,7 +429,7 @@ public class ChemicalIndex {
 		final String strCanonSmiles = RDKFuncs.MolToSmiles(mol,true);
 		mol.delete();
 
-		addMolecule(strPK, strCanonSmiles, listNames,
+		addMolecule(mol, strPK, strCanonSmiles, listNames,
 				mapProperties);
 	}
 
@@ -790,7 +790,7 @@ public class ChemicalIndex {
 	 * @param mapProperties
 	 *            Optional list of properties to be added as other fields. Can be null.
 	 */
-	protected void addMolecule(final String strPK, final String canonSmiles,
+	protected void addMolecule(final ROMol mol, final String strPK, final String canonSmiles,
 			final List<String> listNames, final Map<String, Object> mapProperties)
 					throws IOException, GenericRDKitException {
 		// Pre-checks
@@ -814,7 +814,7 @@ public class ChemicalIndex {
 			// canonSmiles)));
 			// }
 
-			final BitSet fp = m_fingerprintFactory.createStructureFingerprint(canonSmiles, true);
+			final BitSet fp = m_fingerprintFactory.createStructureFingerprint(mol);
 
 			// Create new index document
 			final Document doc = new Document();

@@ -34,6 +34,8 @@ package org.rdkit.lucene.fingerprint;
 
 import java.util.BitSet;
 
+import org.RDKit.ROMol;
+
 /**
  * A fingerprint factory is an object that knows how to produce fingerprints for SMILES.
  * It is used to calculate fingerprints for the search index as well as for query structures
@@ -53,6 +55,7 @@ public interface FingerprintFactory {
 	 * @return Fingerprint as BitSet.
 	 */
 	public BitSet createStructureFingerprint(final String strSmiles, boolean isCanonSmiles);
+	public BitSet createStructureFingerprint(final ROMol mol);
 
 	/**
 	 * Creates a structure fingerprint based on the passed in SMILES.
@@ -63,4 +66,6 @@ public interface FingerprintFactory {
 	 * @return Fingerprint as BitSet.
 	 */
 	public BitSet createQueryFingerprint(final String strSmiles, boolean isCanonSmiles);
+	public BitSet createQueryFingerprint(final ROMol mol);
+
 }
