@@ -198,7 +198,10 @@ public class LuceneSearchDemo extends JPanel {
 			public void run() {
 				try {
 					m_iAddedMoleculeCount.set(0);
+					int t1=(int)System.currentTimeMillis();
 					m_index.addSDFFileToIndex(sdfFile, strFieldPrimaryKey, strIgnoreUpToPK, setIgnorePKs);
+					int t2=(int)System.currentTimeMillis();
+System.out.printf(" time elapsed: %d\n", (t2-t1));
 					onUpdateIndexStatistics();
 				}
 				catch (final IOException exc) {

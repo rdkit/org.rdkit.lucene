@@ -395,14 +395,14 @@ public class ChemicalIndex {
 		// final String strCanonSmiles = RDKFuncs.getCanonSmiles(strStructure, false);
 		RWMol mol=RDKFuncs.MolBlockToMol(strStructure);
 		final String strCanonSmiles = RDKFuncs.MolToSmiles(mol,true);
-		mol.delete();
 
-		if (strCanonSmiles != null && !strCanonSmiles.isEmpty()) {
+		if (mol != null && strCanonSmiles != null && !strCanonSmiles.isEmpty()) {
 			addMolecule(mol, strPK, strCanonSmiles, listNames, mapProperties);
 		}
 		else {
 			LOGGER.log(Level.WARNING, "Canonical SMILES could not be created for\n" + strStructure);
 		}
+		mol.delete();
 	}
 
 	/**

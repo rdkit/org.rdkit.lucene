@@ -142,6 +142,10 @@ public class DefaultFingerprintFactory implements FingerprintFactory {
 	public BitSet createStructureFingerprint(final String strSmiles, final boolean isCanonSmiles) {
 		return createFingerprint(strSmiles, isCanonSmiles, m_settingsStructureFps);
 	}
+	@Override
+	public BitSet createStructureFingerprint(final ROMol mol){
+		return createFingerprint(mol, m_settingsStructureFps);
+	}
 
 	/**
 	 * Creates a fingerprint based on the passed in SMILES.
@@ -155,11 +159,13 @@ public class DefaultFingerprintFactory implements FingerprintFactory {
 	public BitSet createQueryFingerprint(final String strSmiles, final boolean isCanonSmiles) {
 		return createFingerprint(strSmiles, isCanonSmiles, m_settingsQueryFps);
 	}
+	public BitSet createQueryFingerprint(final ROMol mol){
+		return createFingerprint(mol, m_settingsQueryFps);
+	}
 
 	//
 	// Protected Methods
 	//
-
 	/**
 	 * Creates a fingerprint based on the passed in SMILES.
 	 * 
@@ -208,6 +214,51 @@ public class DefaultFingerprintFactory implements FingerprintFactory {
 					mol = RDKit.markForCleanup(RWMol.MolFromSmiles(strSmiles, 0, true /** Sanitize */), iWaveId);
 				}
 
+				// Calculate fingerprint
+				fingerprint = convert(RDKit.markForCleanup(
+						settings.getRdkitFingerprintType().calculate(mol, settings), iWaveId));
+			}
+		}
+		catch (final Exception exc) {
+			LOGGER.log(Level.SEVERE, "Fingerprint calculation failed.", exc);
+		}
+		finally {
+			RDKit.cleanupMarkedObjects(iWaveId);
+		}
+
+		return fingerprint;
+	}
+	/**
+	 * Creates a fingerprint based on the passed in SMILES.
+	 * 
+	 * @param mol: rdkit molecule. Must not be null.
+	 * @param settings Fingerprint settings to be used.
+	 * 
+	 * @return Fingerprint as BitSet.
+	 */
+	protected BitSet createFingerprint(final ROMol mol,
+			final FingerprintSettings settings) {
+		if (mol == null) {
+			throw new IllegalArgumentException("molecule must not be null.");
+		}
+
+		BitSet fingerprint = null;
+		final int iWaveId = RDKit.createUniqueCleanupWaveId();
+		final int iLength = settings.getNumBits();
+
+		try {
+			// Exception: AvalonFP needs SMILES:
+			if (settings.getRdkitFingerprintType() == FingerprintType.avalon ) {
+				String strSmiles = RDKFuncs.MolToSmiles(mol,true);
+				final ExplicitBitVect rdkitBitVector = RDKit.markForCleanup(new ExplicitBitVect(iLength), iWaveId);
+				synchronized (FingerprintType.AVALON_FP_LOCK) {
+					RDKFuncs.getAvalonFP(strSmiles, true, rdkitBitVector, iLength,
+							settings.getAvalonQueryFlag() == 1, true /** resetVect */,
+							settings.getAvalonBitFlags());
+				}
+				fingerprint = convert(rdkitBitVector);
+			}
+			else {
 				// Calculate fingerprint
 				fingerprint = convert(RDKit.markForCleanup(
 						settings.getRdkitFingerprintType().calculate(mol, settings), iWaveId));
