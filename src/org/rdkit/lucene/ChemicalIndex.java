@@ -392,7 +392,10 @@ public class ChemicalIndex {
 					throws IOException, GenericRDKitException {
 		final String strStructure = sdf.getStructure();
 
-		final String strCanonSmiles = RDKFuncs.getCanonSmiles(strStructure, false);
+		// final String strCanonSmiles = RDKFuncs.getCanonSmiles(strStructure, false);
+		RWMol mol=RDKFuncs.MolBlockToMol(strStructure);
+		final String strCanonSmiles = RDKFuncs.MolToSmiles(mol,true);
+		mol.delete();
 
 		if (strCanonSmiles != null && !strCanonSmiles.isEmpty()) {
 			addMolecule(strPK, strCanonSmiles, listNames, mapProperties);
@@ -422,7 +425,11 @@ public class ChemicalIndex {
 	public void addMoleculeAsSmiles(final String strPK, final String strSmiles,
 			final List<String> listNames, final Map<String, Object> mapProperties)
 					throws IOException, GenericRDKitException {
-		addMolecule(strPK, RDKFuncs.getCanonSmiles(strSmiles, true), listNames,
+		RWMol mol=RWMol.MolFromSmiles(strSmiles);
+		final String strCanonSmiles = RDKFuncs.MolToSmiles(mol,true);
+		mol.delete();
+
+		addMolecule(strPK, strCanonSmiles, listNames,
 				mapProperties);
 	}
 
