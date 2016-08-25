@@ -37,5 +37,6 @@ import javax.swing.Icon;
 public interface SmilesIconFactory {
 
 	Icon createSmilesIcon(String strSmiles, int iWidth, int iHeight);
+	Icon createSmilesIcon(String strSmiles, int iWidth, int iHeight, String query);
 
 }

@@ -218,7 +218,7 @@ public class LuceneSearchDemo extends JPanel {
 		m_tfFilename = new JTextField();
 		m_btnBrowse = new JButton("Browse...");
 		m_btnAdd = new JButton("Add to Index");
-		m_tfPrimaryKeyField = new JTextField("chembl_id");
+		m_tfPrimaryKeyField = new JTextField("PUBCHEM_COMPOUND_CID");
 		m_tfIgnoreUpToPK = new JTextField();
 		m_tfIgnorePKs = new JTextField();
 		m_lbMoleculeCount = new JLabel("0");
@@ -486,6 +486,20 @@ public class LuceneSearchDemo extends JPanel {
 	 * 
 	 * @return Icon with SMILES. Null, if image cannot be generated.
 	 */
+	protected Icon getSmilesIcon(final String strSmiles, final int width, final int height, final String strQuery) {
+		Icon icon = null;
+
+		if (m_smilesIconFactory != null) {
+			try {
+				icon = m_smilesIconFactory.createSmilesIcon(strSmiles, width, height, strQuery);
+			}
+			catch (final Exception exc) {
+				LOGGER.log(Level.SEVERE, "Unable to create SMILES icon for " + strSmiles, exc);
+			}
+		}
+
+		return icon;
+	}
 	protected Icon getSmilesIcon(final String strSmiles, final int width, final int height) {
 		Icon icon = null;
 
@@ -833,7 +847,7 @@ public class LuceneSearchDemo extends JPanel {
 					final String strSmiles = doc.get(ChemicalIndex.FIELD_SMILES);
 					if (strSmiles != null && !strSmiles.trim().isEmpty()) {
 						final Dimension dim = m_lbDetailsSmiles.getParent().getSize();
-						final Icon iconStructure = getSmilesIcon(strSmiles, dim.width-50, dim.height-50);
+						final Icon iconStructure = getSmilesIcon(strSmiles, dim.width-50, dim.height-50, m_tfSearch.getText());
 						m_lbDetailsSmiles.setText(strSmiles);
 						m_lbDetailsSmiles.setToolTipText(strSmiles);
 						m_lbDetailsStructureGif.setIcon(iconStructure);
@@ -906,20 +920,17 @@ public class LuceneSearchDemo extends JPanel {
 		// Define here how fingerprints shall be used
 		final FingerprintFactory fingerprintFactory = new DefaultFingerprintFactory(
 				// Define structure fingerprint settings (used when indexing molecules)
-				new DefaultFingerprintSettings(FingerprintType.avalon)
+				new DefaultFingerprintSettings(FingerprintType.pattern)
 				.setNumBits(512)
-				.setAvalonQueryFlag(0)
-				.setAvalonBitFlags(RDKFuncs.getAvalonSSSBits()),
+,
 				// Define query fingerprint settings (used when searching molecules)
-				new DefaultFingerprintSettings(FingerprintType.avalon)
-				.setNumBits(512)
-				.setAvalonQueryFlag(1)
-				.setAvalonBitFlags(RDKFuncs.getAvalonSSSBits()));
+				new DefaultFingerprintSettings(FingerprintType.pattern)
+				.setNumBits(512));
 
 		final AnalyzerFactory analyzerFactory = new StandardAnalyzerFactory();
 
 		final SmilesIconFactory smilesIconFactory = new AvalonSmilesIconFactory(
-				"http://web.global.nibr.novartis.net/services/depicter/mol-renderer/.png?smiles=%VALUE%&w=%WIDTH%&h=%HEIGHT%");
+				"http://localhost:5000/to_img/mol.png?smiles=%VALUE%&w=%WIDTH%&h=%HEIGHT%");
 
 		try {
 			index = new ChemicalIndex(new NIOFSDirectory(dirIndex), analyzerFactory,
